@@ -1,0 +1,34 @@
+{
+  "name": "yuva-shakti-run",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Yuva Shakti Run, Delhi - website (Next.js) and registration API (Express + MongoDB)",
+  "workspaces": [
+    "web",
+    "api"
+  ],
+  "scripts": {
+    "dev": "concurrently -n web,api -c cyan,green \"npm:dev:web\" \"npm:dev:api\"",
+    "dev:web": "npm run dev --workspace web",
+    "dev:api": "npm run dev --workspace api",
+    "build": "npm run build --workspace web && npm run build --workspace api",
+    "build:web": "npm run build --workspace web",
+    "build:api": "npm run build --workspace api",
+    "start": "concurrently -n web,api -c cyan,green \"npm:start:web\" \"npm:start:api\"",
+    "start:web": "npm run start --workspace web",
+    "start:api": "npm run start --workspace api",
+    "lint": "npm run lint --workspace web && npm run lint --workspace api",
+    "typecheck": "npm run typecheck --workspace web && npm run typecheck --workspace api",
+    "seed:demo": "npm run seed --workspace api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "unrs-resolver@1.12.2": true
+  }
+}

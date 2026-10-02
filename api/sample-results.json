@@ -1,0 +1,35 @@
+[
+  {
+    "registrationId": "YSR-2026-7K4Q2",
+    "bib": "YSR-00421",
+    "name": "Sample Runner One",
+    "distance": "10k",
+    "category": "women-30-39",
+    "grossTime": "00:58:12",
+    "netTime": "00:57:40",
+    "status": "finished",
+    "lastCheckpoint": "finish"
+  },
+  {
+    "registrationId": "YSR-2026-3M8XB",
+    "bib": "YSR-00512",
+    "name": "Sample Runner Two",
+    "distance": "5k",
+    "category": "men-20-29",
+    "grossTime": "00:27:44",
+    "netTime": "00:27:05",
+    "status": "finished",
+    "lastCheckpoint": "finish"
+  },
+  {
+    "registrationId": "YSR-2026-R2T9W",
+    "bib": "YSR-00603",
+    "name": "Sample Runner Three",
+    "distance": "3k",
+    "category": "women-20-29",
+    "grossTime": "00:19:02",
+    "netTime": "00:18:31",
+    "status": "finished",
+    "lastCheckpoint": "finish"
+  }
+]
