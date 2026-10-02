@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ageOn, raceDay } from "../services/ids.js";
+import { ageOn, normaliseMobile, raceDay } from "../services/ids.js";
 
 /**
  * Server-side validation is the authority. The browser copy in web/src/lib
@@ -93,6 +93,57 @@ export const partnerSchema = z.object({
   companyWebsite: honeypotField,
 });
 
+/** Which channel a code was sent to. */
+export const otpChannelSchema = z.enum(["email", "mobile"]);
+
+/** Six digits, sent as a string so leading zeros survive. */
+export const otpCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{6}$/, "Enter the 6-digit code");
+
+export const otpRequestSchema = z.object({
+  channel: otpChannelSchema,
+  /** Email address or mobile number, depending on the channel. */
+  target: trimmed.min(3, "Enter your email or mobile number").max(120),
+  companyWebsite: honeypotField,
+});
+
+export const otpVerifySchema = z
+  .object({
+    channel: otpChannelSchema,
+    target: trimmed.min(3, "Enter your email or mobile number").max(120),
+    code: otpCodeSchema,
+    companyWebsite: honeypotField,
+  })
+  .superRefine((value, ctx) => {
+    // The channel decides which shape the target must have, so a mobile code
+    // cannot be requested for a malformed email address and vice versa.
+    if (value.channel === "email") {
+      const parsed = emailField.safeParse(value.target);
+      if (!parsed.success) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["target"],
+          message: "Enter a valid email address",
+        });
+      }
+      return;
+    }
+
+    const parsed = mobileField.safeParse(normaliseMobile(value.target));
+    if (!parsed.success) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["target"],
+        message: "Enter a 10-digit Indian mobile number",
+      });
+    }
+  });
+
+export type OtpRequestInput = z.infer<typeof otpRequestSchema>;
+export type OtpVerifyInput = z.infer<typeof otpVerifySchema>;
+
 export const registrationSchema = z.object({
   distance: distanceField,
   tshirtSize: z.enum(["XS", "S", "M", "L", "XL", "XXL", "3XL"]),
@@ -168,10 +219,3 @@ export function toFieldErrors(error: z.ZodError): Record<string, string> {
   return result;
 }
 
-/** 98765 43210 / +91 98765 43210 / 09876543210 -> 9876543210 */
-export function normaliseMobile(value: string): string {
-  const digits = value.replace(/\D/g, "");
-  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
-  if (digits.length === 11 && digits.startsWith("0")) return digits.slice(1);
-  return digits;
-}

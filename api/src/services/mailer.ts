@@ -86,6 +86,54 @@ interface TemplateOptions {
   footer?: string;
 }
 
+/**
+ * The code is the first thing a runner reads, so it is the largest element and
+ * set in monospace with spacing, to make mistyping it less likely.
+ */
+export function renderOtpTemplate(options: {
+  code: string;
+  channel: "email" | "mobile";
+  minutes: number;
+}): { html: string; text: string } {
+  const where =
+    options.channel === "email"
+      ? "We sent this code to your email address."
+      : "We sent this SMS to your mobile number.";
+
+  const text = [
+    "Your Yuva Shakti Run verification code",
+    "",
+    `${options.code}`,
+    "",
+    where,
+    `It stops working after ${options.minutes} minutes.`,
+    "",
+    "If you did not ask to register, you can ignore this email. Nothing has been",
+    "registered and nobody will contact you about it.",
+    "",
+    "Yuva Shakti Run, Delhi — Strong Youth, Strong Nation",
+  ].join("\n");
+
+  const html = `<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
+<body style="margin:0;padding:24px;background:#FAF7F2;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#161816">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;border-top:6px solid #F47B20;padding:24px">
+    <p style="margin:0 0 4px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#B85300">Yuva Shakti Run</p>
+    <h1 style="margin:0 0 16px;font-size:22px;line-height:1.2">Your verification code</h1>
+    <p style="margin:0 0 20px;font-size:24px;font-weight:700;letter-spacing:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#FAF7F2;border:1px solid #E4DFD6;border-radius:6px;padding:16px 12px;text-align:center">${escapeHtml(options.code)}</p>
+    <p style="margin:0 0 12px;font-size:15px;line-height:1.6">${escapeHtml(where)}</p>
+    <p style="margin:0 0 12px;font-size:15px;line-height:1.6">It stops working after ${options.minutes} minutes.</p>
+    <p style="margin:24px 0 0;padding-top:16px;border-top:1px solid #E4DFD6;font-size:12px;color:#5C625C">
+      If you did not ask to register, ignore this email. Nothing has been registered and nobody will contact you about it.
+    </p>
+  </div>
+</body>
+</html>`;
+
+  return { html, text };
+}
+
 export function renderTemplate(options: TemplateOptions): {
   html: string;
   text: string;

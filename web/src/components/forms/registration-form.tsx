@@ -23,6 +23,7 @@ import {
   TextAreaField,
   TextField,
 } from "./fields";
+import { OtpVerifyStep } from "./otp-verify-step";
 
 const DRAFT_KEY = "ysr-registration-draft";
 
@@ -108,6 +109,7 @@ export function RegistrationForm({
         ? [
             { id: "race", label: "Race" },
             { id: "person", label: "You" },
+            { id: "verify", label: "Verify" },
             { id: "safety", label: "Safety" },
             { id: "extras", label: "Extras" },
             { id: "consent", label: "Consent" },
@@ -126,6 +128,9 @@ export function RegistrationForm({
     null,
   );
   const [restored, setRestored] = useState(false);
+  // The verify step reports back when both channels clear. Until then the
+  // runner cannot leave the step, and the API refuses the submission anyway.
+  const [contactVerified, setContactVerified] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const stepTopRef = useRef<HTMLDivElement>(null);
 
@@ -196,6 +201,9 @@ export function RegistrationForm({
         city: true,
         state: true,
       }),
+      // No schema: the API is the authority here, and the step manages its own
+      // field-level errors so a missing code does not blank the whole form.
+      verify: z.object({}),
       safety: registrationBaseSchema.pick({
         emergencyName: true,
         emergencyMobile: true,
@@ -261,6 +269,14 @@ export function RegistrationForm({
       focusFirstError();
       return;
     }
+    if (currentId === "verify" && !contactVerified) {
+      setFormError(
+        "Verify your email address and mobile number before continuing.",
+      );
+      focusFirstError();
+      return;
+    }
+    setFormError("");
     setStep((current) => Math.min(current + 1, steps.length - 1));
     moveFocus();
   }
@@ -268,6 +284,8 @@ export function RegistrationForm({
   function goBack() {
     setStep((current) => Math.max(current - 1, 0));
     setErrors({});
+    // Coming back to verify after editing the address invalidates the codes.
+    setContactVerified(false);
     moveFocus();
   }
 
@@ -296,9 +314,11 @@ export function RegistrationForm({
         setErrors(fieldErrors);
         // Send the runner back to the step that owns the first bad field.
         const firstField = Object.keys(fieldErrors)[0] ?? "";
+        if (firstField) setContactVerified(false);
         const owning = [
           ["distance", "tshirtSize"],
           ["fullName", "dateOfBirth", "gender", "email", "mobile", "city", "state"],
+          ["verify"],
           ["emergencyName", "emergencyMobile", "bloodGroup", "medicalConditions"],
           ["club", "hearAbout"],
           ["acceptTerms", "photographyConsent", "guardianName", "guardianConsent"],
@@ -539,6 +559,21 @@ export function RegistrationForm({
             />
           </div>
         </fieldset>
+      ) : null}
+
+      {currentId === "verify" ? (
+        <OtpVerifyStep
+          email={String(values.email)}
+          mobile={String(values.mobile)}
+          emailError={errors.email}
+          mobileError={errors.mobile}
+          onEmailChange={(value) => set("email", value)}
+          onMobileChange={(value) => set("mobile", value)}
+          onVerified={() => {
+            setContactVerified(true);
+            setFormError("");
+          }}
+        />
       ) : null}
 
       {currentId === "safety" ? (

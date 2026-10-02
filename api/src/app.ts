@@ -5,6 +5,7 @@ import { env } from "./config/env.js";
 import { errorHandler, notFound } from "./middleware/error.js";
 import { router as formRouter } from "./routes/index.js";
 import { router as resultsRouter } from "./routes/results.routes.js";
+import { router as otpRouter } from "./routes/otp.routes.js";
 import { router as certificateRouter } from "./routes/certificate.routes.js";
 
 export function createApp() {
@@ -48,6 +49,7 @@ export function createApp() {
   // shapes and different limits.
   app.use("/api", formRouter);
   app.use("/api", resultsRouter);
+  app.use("/api", otpRouter);
   app.use("/", certificateRouter);
 
   app.use(notFound);

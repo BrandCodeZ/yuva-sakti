@@ -42,5 +42,23 @@ export const env = {
   registrationOpen: optional("REGISTRATION_OPEN", "false") === "true",
   /** Keeps the results endpoint closed until a timing file is actually loaded. */
   resultsPublished: optional("RESULTS_PUBLISHED", "false") === "true",
+  /**
+   * HMAC key for OTP codes. Generate one with:
+   *   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   * Must stay constant, or codes issued before a change stop verifying.
+   */
+  otpSecret: required(
+    "OTP_SECRET",
+    // No development default on purpose. A fixed fallback would ship to
+    // production by accident, and a generated-per-boot one would invalidate
+    // every outstanding code each restart.
+    undefined,
+  ),
+  /**
+   * HTTP relay for verification SMS (MSG91, Gupshup, Textlocal and similar).
+   * Leave blank in development to log codes instead of sending them.
+   */
+  smsWebhookUrl: optional("SMS_WEBHOOK_URL"),
+  smsWebhookKey: optional("SMS_WEBHOOK_KEY"),
   isProduction: optional("NODE_ENV", "development") === "production",
 } as const;

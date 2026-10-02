@@ -12,6 +12,7 @@ import { VolunteerApplication } from "../models/volunteer.model.js";
 import { PartnerEnquiry } from "../models/partner.model.js";
 import { renderTemplate, sendMailQuietly } from "../services/mailer.js";
 import { ageOn, generateRegistrationId, raceDay } from "../services/ids.js";
+import { isVerified } from "../services/otp.js";
 import {
   contactSchema,
   interestSchema,
@@ -193,6 +194,27 @@ router.post(
   asyncHandler(async (req, res) => {
     const body = parsedBody<RegistrationInput>(res);
 
+    // Verification is enforced here rather than only in the UI, so a runner
+    // cannot skip the code step by posting directly to this endpoint. Both
+    // channels are required: the email carries the confirmation, the mobile
+    // carries race-day updates.
+    const [emailVerified, mobileVerified] = await Promise.all([
+      isVerified("email", body.email),
+      isVerified("mobile", body.mobile),
+    ]);
+
+    if (!emailVerified || !mobileVerified) {
+      const missing = [
+        !emailVerified ? "email address" : null,
+        !mobileVerified ? "mobile number" : null,
+      ].filter(Boolean);
+
+      throw new ApiError(
+        403,
+        `Please verify your ${missing.join(" and your ")} with the 6-digit code before submitting.`,
+      );
+    }
+
     const dateOfBirth = new Date(body.dateOfBirth);
     const ageAtRaceDay = ageOn(dateOfBirth, raceDay());
 
@@ -204,7 +226,10 @@ router.post(
       ageAtRaceDay,
       gender: body.gender,
       email: body.email,
+      // Recorded from the OTP check above rather than trusted from the request.
+      emailVerified: true,
       mobile: body.mobile,
+      mobileVerified: true,
       alternateMobile: body.alternateMobile || null,
       city: body.city,
       state: body.state,

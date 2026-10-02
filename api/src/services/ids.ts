@@ -28,6 +28,22 @@ export function ageOn(dateOfBirth: Date, on: Date): number {
 }
 
 /**
+ * Indian mobile numbers to a bare 10-digit form, tolerating the ways people
+ * type them: with spaces, with +91, or with the old 0 prefix.
+ *
+ * This lives in one place on purpose. When four copies drifted apart, a runner
+ * who typed 09876543210 got a verification challenge keyed to the untrimmed
+ * number while their registration was stored against the trimmed one, so
+ * verification silently failed. One definition, imported everywhere.
+ */
+export function normaliseMobile(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+  if (digits.length === 11 && digits.startsWith("0")) return digits.slice(1);
+  return digits;
+}
+
+/**
  * The race day used for age checks and certificate wording.
  * Set EVENT_DATE_ISO in the API environment once the date is confirmed.
  */
