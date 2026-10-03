@@ -23,7 +23,7 @@ Then start both apps:
 npm run dev
 ```
 
-- Web: http://localhost:3000
+- Web: https://yuva-sakti.onrender.com/
 - API: http://localhost:4000 (`/health` confirms it is up)
 
 ## Scripts
